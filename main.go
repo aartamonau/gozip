@@ -22,6 +22,7 @@ var (
 	paths     []string
 	prefix    string
 	recursive bool
+	stripPath bool
 
 	name string
 	f    *flag.FlagSet
@@ -132,8 +133,13 @@ func doCompress(zipFile *os.File) error {
 		}
 
 		zippedPath := path
+
+		if stripPath {
+			zippedPath = filepath.Base(zippedPath)
+		}
+
 		if prefix != "" {
-			zippedPath = filepath.Join(prefix, path)
+			zippedPath = filepath.Join(prefix, zippedPath)
 		}
 		zippedPath = zipifyPath(zippedPath)
 
@@ -193,13 +199,17 @@ func main() {
 	f.SetOutput(ioutil.Discard)
 
 	f.BoolVar(&recursive, "recursive", false, "scan directories recursively")
+	f.BoolVar(&stripPath, "strip-path", false, "store just file names")
 	f.StringVar(&prefix, "prefix", "", "prepend each path with prefix")
 
 	err := f.Parse(os.Args[1:])
 	if err == nil {
-		if f.NArg() == 0 {
+		switch {
+		case recursive && stripPath:
+			err = fmt.Errorf("-recursive and -strip-path are mutually exclusive")
+		case f.NArg() == 0:
 			err = fmt.Errorf("output zip file is not specified")
-		} else {
+		default:
 			zipPath = maybeAddExt(f.Arg(0))
 			paths = f.Args()[1:]
 		}
