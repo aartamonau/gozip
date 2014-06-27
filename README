@@ -1,0 +1,8 @@
+Simple zip compressor with Zip64 support implemented in Go.
+
+Usage:
+  ./gozip [options] zipfile [file ...]
+Options:
+  -prefix="": prepend each path with prefix
+  -recursive=false: scan directories recursively
+  -strip-path=false: store just file names
